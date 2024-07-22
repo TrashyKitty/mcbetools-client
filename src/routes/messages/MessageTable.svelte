@@ -31,7 +31,7 @@
         {#each paginatedSource as message, i}
     
             <div class="hover:bg-surface-400/20 cursor-pointer">
-                <img src={users[message.author] ? getUserAvatar(users[message.author]) : null} class="w-12 h-12 rounded-full" />
+                <img src={users[message.author] ? getUserAvatar(users[message.author]) : null} class="w-12 h-12 rounded-full object-cover bg-surface-400" />
                 <span class="flex-auto">
                     <dt>{message.subject}</dt>
                     <dd class="opacity-50">From: {users[message.author] ? users[message.author].displayName: "Unknown"}</dd>
