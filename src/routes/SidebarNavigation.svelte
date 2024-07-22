@@ -4,6 +4,8 @@
 	import { initializeStores, Modal, getModalStore } from '@skeletonlabs/skeleton';
 	import AppSettings from "./AppSettings.svelte";
 	import SidebarNavigationDocs from "./docpages/[url]/SidebarNavigationDocs.svelte";
+	import axios from "axios";
+	import config from "../config";
 	initializeStores();
 
 	const modalStore = getModalStore();
@@ -15,6 +17,17 @@
         setInterval(()=>{
             path.set(location.pathname)
         },100)
+    })
+    let incomingMessages = writable([])
+    onMount(()=>{
+    axios.get(`${config.apiEndpoint}/incoming-messages`, {
+        headers: {
+            Authorization: localStorage.getItem('sessionToken')
+        }
+    }).then(res=>{
+        incomingMessages.set(res.data.messages);
+    })
+
     })
 </script>
 <Modal />
@@ -53,6 +66,11 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                         </span>
                         <span class="flex-auto">Messages</span>
+                        {#if $incomingMessages && $incomingMessages.length}
+                            <span class="badge variant-filled-primary">
+                                {$incomingMessages.length}
+                            </span>
+                        {/if}
                     </a>
                 </li>
                 {/if}

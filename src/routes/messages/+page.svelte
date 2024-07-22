@@ -1,9 +1,30 @@
 <script>
 	import { Tab, TabGroup } from "@skeletonlabs/skeleton";
+	import axios from "axios";
 	import { writable } from "svelte/store";
+	import config from "../../config";
+	import MessageTable from "./MessageTable.svelte";
+	import { onMount } from "svelte";
     let tabSet = 0;
     let outgoingMessages = writable([]);
     let incomingMessages = writable([])
+    onMount(()=>{
+        axios.get(`${config.apiEndpoint}/outgoing-messages`, {
+        headers: {
+            Authorization: localStorage.getItem('sessionToken')
+        }
+    }).then(res=>{
+        outgoingMessages.set(res.data.messages);
+    })
+    axios.get(`${config.apiEndpoint}/incoming-messages`, {
+        headers: {
+            Authorization: localStorage.getItem('sessionToken')
+        }
+    }).then(res=>{
+        incomingMessages.set(res.data.messages);
+    })
+
+    })
 </script>
 <div class="flex flex-col h-full">
     <TabGroup class="h-fit">
@@ -34,7 +55,7 @@
                         <p class="opacity-50 italic">TIP: Go to any profile to send a message</p>
                     </div>
                 {:else}
-                    <h1>Sample Text</h1>
+                    <MessageTable messages={$outgoingMessages} />
                 {/if}
             {:else if tabSet === 1}
                 {#if $incomingMessages.length < 1}
@@ -42,7 +63,7 @@
                         <h3 class="h3">You have no messages</h3>
                     </div>
                 {:else}
-                    <h1>Sample Text</h1>
+                    <MessageTable messages={$incomingMessages} />
                 {/if}
             {/if}
     
