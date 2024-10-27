@@ -6,6 +6,12 @@ import { skeleton } from '@skeletonlabs/tw-plugin';
 import { trashdev } from './src/trashdev'
 import { winter } from './src/winter'
 import { fall } from './src/fall'
+import { catpuccin } from './src/catpuccin'
+import { candy } from './src/candy'
+import { doors } from './src/doors'
+import { nord } from './src/nord'
+import { obsidian } from './src/obsidian'
+import { prismdark } from './src/prismdark'
 
 export default {
 	darkMode: 'class',
@@ -21,7 +27,13 @@ export default {
 				custom: [
 					trashdev,
 					winter,
-					fall
+					fall,
+					catpuccin,
+					candy,
+					doors,
+					nord,
+					obsidian,
+					prismdark
 				],
 			},
 		}),

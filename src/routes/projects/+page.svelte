@@ -6,6 +6,7 @@
 	import { writable } from 'svelte/store';
 	import axios from 'axios';
 	import config from '../../config';
+	import ProjectCard from '../ProjectCard.svelte';
 
 	initializeStores();
     const modalStore = getModalStore();
@@ -25,33 +26,28 @@
 </script>
 <Modal />
 <div class="w-full flex max-w-none flex-col">
-	<div class="flex h-24 justify-center items-center w-full">
-		<button class="btn btn-sm variant-filled-primary" on:click={()=>{
+	<div class="h-24 p-4 w-full">
+        <h3 class="h3 font-bold flex items-center justify-center w-fit gap-2">Welcome to Projects <span class="badge bg-gradient-to-br variant-gradient-secondary-tertiary">BETA</span></h3>
+        <p class="opacity-50">You can manage your submissions here.</p>
+        <div class="h-3 w-full"></div>
+        <button class="btn btn-md variant-ghost flex gap-4 w-fit" on:click={()=>{
             modalStore.trigger({
                 type: 'component',
                 component: { ref: NewProject }
             })
-        }}>New Project</button>
-
-
+        }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus-circle"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            New Project
+        </button>
     </div>
-    <div class="project-cards grid">
-        {#each $projects as project}
-            <div class="card bg-initial w-fit rounded-lg overflow-hidden">
-                <div class="banner w-full max-w-56">
-                    <img src={project.bannerURL ? `${config.apiEndpoint}${project.bannerURL}` : `/defaultbanner.png`}>
-                </div>
-
-                <section class="p-4">
-                    <h3 class="h3 font-bold">{project.title}</h3>
-                    <p class="opacity-75">{project.shortDescription}</p>
-                    <button class="btn btn-sm w-full variant-soft-secondary" on:click={()=>{
-                        location.pathname = `/projects/edit/${project.url}`
-                    }}>Edit</button>
-                    <div class="h-2"></div>
-                    <button class="btn btn-sm w-full variant-soft-error">Delete</button>
-                </section>
-            </div>
-        {/each}
+    <div class="h-3"></div>
+    <div class="grid md:grid-cols-2 sm:grid-cols-1 lg:grid-cols-5 w-full p-4 gap-4">
+        {#if $projects && $projects.length}
+            {#each $projects as project}
+                <ProjectCard edit={true} project={project} />
+            {/each}
+        {:else}
+            <p>No projects here :(</p>
+        {/if}
     </div>
 </div>

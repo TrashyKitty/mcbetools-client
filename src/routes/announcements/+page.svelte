@@ -23,24 +23,29 @@
 </script>
 <div class="w-full h-full flex-col flex gap-4 items-center justify-center">
     {#each $announcements as announcement}
-    <div class="p-4">
-        <div class="card w-full min-w-96 w-96 max-w-96 bg-initial p-4">
+    <div class="p-4 w-full">
+        <hr />
+        <div class="w-full">
             <div class="flex gap-4 items-center">
                 <Avatar src={getUserAvatar(announcement.author)} width="w-8" rounded="rounded-full" />
                 <h1 class="text-xl">{announcement.author.displayName}</h1>
             </div>
-            <article class="prose prose-invert">
+            <article class="prose prose-invert max-w-none">
                 {@html announcement.text}
             </article>
         </div>
     </div>
 {/each}
+<hr />
 
 </div>
 
 <style lang="postcss" global>
     .prose {
         --tw-prose-headings: #fff;
+    }
+    :global(.prose img) {
+        max-width: 24rem !important;
     }
     .prose {
         margin: 0 !important;

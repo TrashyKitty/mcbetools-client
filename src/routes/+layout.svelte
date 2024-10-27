@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../app.postcss';
-	import { AppShell, AppBar, Avatar, popup } from '@skeletonlabs/skeleton';
+	import { AppShell, AppBar, Avatar, popup, Modal } from '@skeletonlabs/skeleton';
 
 	// Highlight JS
 	import hljs from 'highlight.js/lib/core';
@@ -10,7 +10,7 @@
 	import css from 'highlight.js/lib/languages/css';
 	import javascript from 'highlight.js/lib/languages/javascript';
 	import typescript from 'highlight.js/lib/languages/typescript';
-	import { initializeStores, Drawer, getDrawerStore } from '@skeletonlabs/skeleton';
+	import { initializeStores, Drawer, getDrawerStore, getModalStore } from '@skeletonlabs/skeleton';
 	hljs.registerLanguage('xml', xml); // for HTML
 	hljs.registerLanguage('css', css);
 	hljs.registerLanguage('javascript', javascript);
@@ -26,11 +26,15 @@
 	import { onMount, setContext } from 'svelte';
 	import axios from 'axios';
 	import SidebarNavigation from './SidebarNavigation.svelte';
+	import { loggedInUser } from './loggedInUserStore';
+	import NotificationPopout from './NotificationPopout.svelte';
+	import SearchPopup from './SearchPopup.svelte';
+	import UserPopout from './popouts/UserPopout.svelte';
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
-	let loggedInUser:any = writable(null)
 	initializeStores();
-
+	const modalStore = getModalStore();
 	const drawerStore = getDrawerStore();
+	setContext("drawerStore", drawerStore)
 	setContext("loggedInUser", loggedInUser);
 	onMount(()=>{
 		document.body.setAttribute('data-theme', localStorage.getItem('theme') ? localStorage.getItem('theme') : 'trashdev')
@@ -56,6 +60,11 @@
             return `${hex}`
         }
     }
+	const yes = {
+	event: 'focus-click',
+	target: 'notifPopup',
+	placement: 'bottom'
+	};
 	const popupFocusClick = {
 		event: 'focus-click',
 		target: 'popupFocusClick',
@@ -69,10 +78,30 @@
 		}
 	})
 	function drawerOpen(): void {
-	drawerStore.open({});
+	drawerStore.open({
+		meta: {
+			drawerClose: drawerStore.close
+		}
+	});
 }
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 </script>
+<Modal />
+<style>
+
+@media (max-width: 640px) {
+  .custom-class {
+    position: fixed !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    height: 24rem; /* 96 in Tailwind */
+    width: 100% !important;
+    margin: 0 !important;
+    top: auto !important;
+  }
+}
+
+</style>
 <Drawer>
 	<SidebarNavigation />
 </Drawer>
@@ -94,8 +123,18 @@
 						</svg>
 					</span>
 				</button>
+				<button class="lg:hidden btn btn-sm mr-4" on:click={()=>{
+					modalStore.trigger({
+                        type: 'component',
+                        component: {ref: SearchPopup}
+                    })
+				}}>
+					<span>
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+					</span>
+				</button>
 				<!-- <strong class="text-xl uppercase sm:hidden">{config.productName}</strong> -->
-				<div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+				<div class="input-group input-group-divider hidden lg:grid-cols-[auto_1fr_auto] lg:grid">
 					<input type="search" placeholder="Search..." bind:value={searchQuery} on:keydown={(e)=>{
 						if(e.key == "Enter") {
 							let params = new URLSearchParams();
@@ -122,36 +161,69 @@
 				<button class="btn btn-icon variant-filled-primary">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
 				</button> -->
-				<div class="card p-4 variant-filled-surface sm:hidden z-50" data-popup="popupFocusClick">
+				<div class="card p-4 bg-intiial sm:hidden z-50" data-popup="notifPopup">
+					<NotificationPopout	/>
+					<div class="arrow bg-initial" />
+				</div>
+				<div class="shadow-2xl p-4 card bg-initial backdrop-blur-lg sm:hidden z-50 min-w-56 custom-class overflow-hidden" data-popup="popupFocusClick">
 					{#if $loggedInUser}
+						<!-- <UserPopout user={loggedInUser} /> -->
 						<div class="flex gap-4">
 							<div class="w-16">
 								<Avatar src={$loggedInUser.avatarURL ? `${config.apiEndpoint}${$loggedInUser.avatarURL}` : `data:image/png;base64,${new Identicon(textToHex($loggedInUser.handle)).toString()}`} width="w-16" rounded="rounded-full" />
 							</div>
-							<div class="flex-col flex">
-								<h3 class="h3">{$loggedInUser.displayName}</h3>
+							<div class="flex-col flex w-full">
+								<div class="flex w-full justify-between">
+									<h3 class="h3">{$loggedInUser.displayName}</h3>
+									<button class="btn btn-sm variant-filled-error md:hidden">X</button>
+								</div>
 								<p class="opacity-50">@{$loggedInUser.handle}</p>
 							</div>
 						</div>
 						<div class="h-4"></div>
-						<button class="variant-soft-tertiary btn-sm btn w-full" on:click={()=>{
+						{#if $loggedInUser.microsoftAccountLinked}
+							<p>Microsoft Account Linked</p>
+						{:else}
+							<button class="variant-soft-error btn-sm btn w-full" on:click={()=>{
+								axios.post(`${config.apiEndpoint}/link-ms-account`, {}, {
+									headers: {
+										Authorization: localStorage.getItem('sessionToken')
+									}
+								}).then(res=>{
+									let a = document.createElement('a');
+									a.target = "blank";
+									a.href = `https://microsoft.com/link?otc=${res.data}`;
+									a.click();
+								})
+							}}>Link Microsoft Account</button>
+						{/if}
+						<div class="h-4"></div>
+						<button class="variant-filled btn-sm btn w-full" on:click={()=>{
 							location.pathname = '/projects'
 						}}>View my projects</button>
 						<div class="h-4"></div>
-						<button class="variant-filled-primary btn-sm btn w-full" on:click={()=>{
+						<button class="variant-filled btn-sm btn w-full" on:click={()=>{
 							location.pathname = '/profiles/me'
 						}}>View my profile</button>
+						<div class="h-4"></div>
+						<button class="variant-filled btn-sm btn w-full" on:click={()=>{
+							loggedInUser.set(null)
+							localStorage.removeItem("sessionToken")
+							location.pathname = '/'
+						}}>Logout</button>
 					{/if}
-					<div class="arrow variant-filled-surface" />
+					<div class="hidden md:block arrow bg-initial" />
 				</div>
 				{#if $loggedInUser}
-					<button class="btn btn-icon variant-ghost-surface w-8 h-8 p-2">
+					<button class="btn btn-icon variant-ghost-surface w-8 h-8 p-2" use:popup={yes}>
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bell"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
 					</button>
 					<button class="btn btn-sm variant-ghost-surface flex gap-4" use:popup={popupFocusClick}>
 						<Avatar src={$loggedInUser.avatarURL ? `${config.apiEndpoint}${$loggedInUser.avatarURL}` : `data:image/png;base64,${new Identicon(textToHex($loggedInUser.handle)).toString()}`} width="w-6" rounded="rounded-full" />
 						{$loggedInUser.displayName}
-
+						{#if $loggedInUser.microsoftAccountLinked}
+						 <img src="/mslogo.svg" class="w-6 h-6" alt="">
+						{/if}
 					</button>
 				{:else}
 					<a

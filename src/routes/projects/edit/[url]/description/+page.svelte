@@ -72,6 +72,11 @@
     line-height: 1.5rem !important;
   }
 </style>
+<ol class="breadcrumb px-8 pt-4">
+	<li class="crumb"><a class="anchor" href={`/projects/edit/${data.url}`}>{data.url}</a></li>
+	<li class="crumb-separator" aria-hidden="true">&rsaquo;</li>
+	<li>Long Description</li>
+</ol>
 <div class="h-4"></div>
 <div class="flex justify-center">
     <div class="flex gap-4 flex-col w-full px-8">

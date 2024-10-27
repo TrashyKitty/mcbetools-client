@@ -1,3 +1,9 @@
+<svelte:head>
+  <!-- Fira font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" />
+</svelte:head>
 <script lang="ts">
 	import { getModalStore, Toast } from '@skeletonlabs/skeleton';
 	import { Avatar } from '@skeletonlabs/skeleton';
@@ -7,7 +13,16 @@
 	import config from '../../../../config';
     import { getToastStore } from '@skeletonlabs/skeleton';
 	import { writable } from 'svelte/store';
+    import { Carta, MarkdownEditor } from 'carta-md';
+    import 'carta-md/default.css'
+    import './description/theme.css'
+	import { onMount } from 'svelte';
 
+    import { attachment } from '@cartamd/plugin-attachment';
+//@ts-ignore
+    const carta = new Carta({
+        theme: 'github-dark'
+    });
 	const modalStore = getModalStore();
     const toastStore = getToastStore();
     let title = "";
@@ -15,9 +30,30 @@
     let shortDescription = "";
     let file:any = writable(null);
     let fileTitle = "";
+    let fileChangelog = "";
 </script>
 <Toast/>
+<style>
+    :global(.carta-font-code),
+  :global(.carta-font-code *) {
+    font-family: 'Fira Code', monospace !important;
+    font-variant-ligatures: normal !important;
+    font-size: 1.1rem !important;
+    line-height: 1.5rem !important;
+  }
+
+:global(.carta-input), :global(.carta-renderer), :global(textarea) {
+        width: 30rem !important;
+        height: 20rem !important;
+        max-width: 90vw;
+        max-height: 100vh;
+    }
+</style>
 <div class="card bg-initial p-4 py-8">
+    <h3 class="h3 font-bold">
+        File Changelog
+    </h3>
+    <MarkdownEditor carta={carta} bind:value={fileChangelog} />
     <h3 class="h3 font-bold">File Title</h3>
     <div class="h-2"></div>
     <input type="text" placeholder="Type a title for your file" class="input" bind:value={fileTitle}>
@@ -45,6 +81,7 @@
         fd.append('projectURL', $modalStore[0].meta.url);
         fd.append('fileTitle', fileTitle);
         fd.append('file', $file, $file.name);
+        fd.append('changelog', fileChangelog);
         axios({
             method: "POST",
             url: `${config.apiEndpoint}/project/add-file`,

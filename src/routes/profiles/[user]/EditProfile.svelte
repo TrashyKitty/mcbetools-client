@@ -23,7 +23,7 @@ function textToHex(text: string) {
     }
 </script>
 
-<div class="card variant-filled-surface p-4 py-8">
+<div class="card bg-initial p-4 py-8">
     <div class="w-full h-fit">
         {#if $profileData.bannerURL}
             <div class="banner w-full h-52 min-w-96 rounded-lg" style={`background-image:url(${config.apiEndpoint}${$profileData.bannerURL});background-size:cover;background-position:center;`}></div>
@@ -159,5 +159,5 @@ function textToHex(text: string) {
                 })
             }
         })
-    }}>Update Bio</button>
+    }}>Update Status</button>
 </div>

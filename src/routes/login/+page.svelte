@@ -12,8 +12,10 @@
 <div class="container h-full h-full flex justify-center items-center p-0 max-w-none">
 	<div
 		class="bg w-full h-full flex justify-center items-center"
-		style="background:url(/leafbg.png)"
+		style="background:url(/loginbg.png);background-size:cover;background-position:center;"
 	>
+    <div class="w-full h-full flex justify-center items-center bg-gradient-to-b from-surface-900/10 to-surface-900 flex-col gap-4">
+        <img src="/mcbetoolslogo.png" alt="" class="w-72 h-auto object-cover">
 		<form
 			on:submit={(e) => {
 				e.preventDefault();
@@ -36,7 +38,7 @@
                     }
                 })
 			}}
-			class="p-8 py-20 bg-surface-600/75 rounded-lg backdrop-blur-sm border border-surface-100/15"
+			class="card variant-filled-surface p-8 py-12 w-72"
 		>
 			<input type="email" placeholder="Email" class="input w-full" bind:value={email} />
 			<div class="h-3"></div>
@@ -46,5 +48,7 @@
 			<div class="h-3"></div>
             <a href="/register" class="w-full flex justify-center items-center text-primary-500 underline hover:no-underline">Create an account instead</a>
 		</form>
+        
+    </div>
 	</div>
 </div>
