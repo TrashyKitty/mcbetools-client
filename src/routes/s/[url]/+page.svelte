@@ -7,9 +7,10 @@
 	import { Carta } from "carta-md";
 	import { getUserAvatar } from "../../AvatarRenderer";
 	import Comment from "./Comment.svelte";
+	import { getContext } from "svelte";
 
     export let data;
-    let tab = 1;
+    let tab = 0;
     let readme = writable("");
     //@ts-ignore
     const carta = new Carta({
@@ -57,6 +58,8 @@
         }
     })
     let uiRefresh = false;
+    let loggedInUser:any = getContext("loggedInUser");
+
     // axios.get(`${config.apiEndpoint}/add-view/${data.url}`).then(res=>{})
 </script>
 <svelte:head>
@@ -88,20 +91,47 @@
         <div class="card bg-initial w-full h-16 flex gap-2 items-center justify-center">
             <button class="btn btn-sm {tab == 0 ? "variant-filled" : "variant-soft"}" on:click={()=>{tab = 0}}>Info</button>
             <button class="btn btn-sm {tab == 1 ? "variant-filled" : "variant-soft"}" on:click={()=>{tab = 1}}>Comments</button>
-            <button class="btn btn-sm {tab == 2 ? "variant-filled" : "variant-soft"}" on:click={()=>{tab = 2}}>Gallery</button>
-            <button class="btn btn-sm {tab == 3 ? "variant-filled" : "variant-soft"}" on:click={()=>{tab = 3}}>Forums</button>
+            <!-- <button class="btn btn-sm {tab == 2 ? "variant-filled" : "variant-soft"}" on:click={()=>{tab = 2}}>Gallery</button>
+            <button class="btn btn-sm {tab == 3 ? "variant-filled" : "variant-soft"}" on:click={()=>{tab = 3}}>Forums</button> -->
         </div>
     </div>
     {#if tab == 1}
-        <div class="p-4">
+        {#if $loggedInUser}
+        <div class="px-4 pt-4">
             <div class="card w-full bg-initial p-4 flex gap-4">
-                <input type="text" class="input flex-1" placeholder="Comment Text">
-                <button class="btn variant-filled">Post</button>
+                    <input type="text" class="input flex-1" placeholder="Comment Text" bind:value={commentText}>
+                    <button class="btn variant-filled" on:click={()=>{
+                                                            let fd = new FormData();
+                                        fd.append("text", commentText);
+                                        fd.append("url", data.url);
+                                        axios({
+                                            method: "POST",
+                                            url: `${config.apiEndpoint}/make-comment`,
+                                            data: fd,
+                                            headers: {
+                                                Authorization: localStorage.getItem('sessionToken')
+                                            }
+                                        }).then(res=>{
+                                            axios.get(`${config.apiEndpoint}/get-comments/${data.url}`).then(res=>{
+                                    comments.set(res.data.comments)
+                                })
+
+                                        })
+                    }}>Post</button>
             </div>
         </div>
+        {/if}
         {#if $comments}
-            <div class="px-4">
-                <div class="w-full bg-initial p-4 card min-h-16"></div>
+            <div class="px-4 {!$loggedInUser ? "py-4" : "py-4"}">
+                <div class="w-full bg-initial p-4 card min-h-16">
+                    {#each $comments as comment}
+                        <Comment comment={comment} url={data.url} on:refresh={()=>{
+                            axios.get(`${config.apiEndpoint}/get-comments/${data.url}`).then(res=>{
+                                comments.set(res.data.comments)
+                            })
+                        }}/>
+                    {/each}
+                </div>
             </div>
         {/if}
     {/if}
@@ -224,7 +254,7 @@
                 <TabGroup>
                     <Tab name="tab1" value={0} bind:group={tab}>Overview</Tab>
                     <Tab name="tab2" value={1} bind:group={tab}>Comments</Tab>
-                    <Tab name="tab3" value={2} bind:group={tab}>Files</Tab>
+                    <!-- <Tab name="tab3" value={2} bind:group={tab}>Files</Tab> -->
                 </TabGroup>
                 <div class="h-6"></div>
                 <h3 class="h3 font-bold p-0 m-0">{$proj.title}</h3>
@@ -323,6 +353,11 @@
                                         headers: {
                                             Authorization: localStorage.getItem('sessionToken')
                                         }
+                                    }).then(res=>{
+                                        axios.get(`${config.apiEndpoint}/get-comments/${data.url}`).then(res=>{
+                                comments.set(res.data.comments)
+                            })
+
                                     })
                                 }}>Send</button>
                             </div>
@@ -331,7 +366,11 @@
                         {#if $comments}
                             {#each $comments as comment}
                                 <div class="h-2"></div>
-                                <Comment comment={comment} />
+                                <Comment comment={comment} url={data.url} on:refresh={()=>{
+                                    axios.get(`${config.apiEndpoint}/get-comments/${data.url}`).then(res=>{
+                                        comments.set(res.data.comments)
+                                    })
+                                }}/>
                             {/each}
                         {/if}
                     </div>

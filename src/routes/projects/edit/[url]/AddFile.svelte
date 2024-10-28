@@ -42,14 +42,14 @@
     line-height: 1.5rem !important;
   }
 
-:global(.carta-input), :global(.carta-renderer), :global(textarea) {
+:global(.fuckoffbadcss .carta-input), :global(.fuckoffbadcss .carta-renderer), :global(.fuckoffbadcss textarea) {
         width: 30rem !important;
         height: 20rem !important;
         max-width: 90vw;
         max-height: 100vh;
     }
 </style>
-<div class="card bg-initial p-4 py-8">
+<div class="card fuckoffbadcss bg-initial p-4 py-8">
     <h3 class="h3 font-bold">
         File Changelog
     </h3>
